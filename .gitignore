@@ -1,0 +1,9 @@
+# 실제 여행 데이터 백업 (개인정보 — 절대 커밋하지 않음)
+_local_backup/
+
+# OS/편집기 잡파일
+.DS_Store
+Thumbs.db
+
+__pycache__/
+*.pyc

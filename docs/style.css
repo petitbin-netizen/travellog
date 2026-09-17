@@ -1,0 +1,342 @@
+:root {
+  --bg: #FAFAFA;
+  --text: #222222;
+  --accent: #FF5A5F;
+  --card-bg: #FFFFFF;
+  --muted: #777777;
+  --border: #EAEAEA;
+}
+
+* { box-sizing: border-box; }
+
+/* 모바일에서 입력창 탭할 때 자동 확대(iOS)되는 것을 막기 위해 16px 이상으로 고정 */
+input, textarea, select, button {
+  font-family: inherit;
+}
+input, textarea, select {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+a { color: inherit; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px 32px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.topbar-actions .btn-ghost { font-size: 13px; padding: 8px 14px; }
+
+.btn-accent {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn-accent:hover { transform: scale(1.04); box-shadow: 0 4px 14px rgba(255, 90, 95, .35); }
+
+/* 목록: 핀터레스트 매소너리 그리드 */
+#app-root.grid {
+  columns: 4 260px;
+  column-gap: 24px;
+  padding: 32px 32px 64px;
+}
+
+.card {
+  display: inline-block;
+  width: 100%;
+  break-inside: avoid;
+  margin-bottom: 20px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+  text-decoration: none;
+}
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .14);
+}
+
+.card-cover {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, #eee, #ddd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+  overflow: hidden;
+}
+.card-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.card-body { padding: 16px 18px 20px; }
+.card-title { font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+.card-meta { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+.badge-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge {
+  background: rgba(255, 90, 95, .1);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.day-empty {
+  color: var(--muted);
+  font-size: 13px;
+  font-style: italic;
+  padding: 0 32px;
+}
+
+@media (max-width: 960px) {
+  #app-root.grid { columns: 2 220px; }
+}
+
+@media (max-width: 640px) {
+  #app-root.grid { columns: 1; padding: 16px; }
+  .topbar { padding: 14px 16px; }
+}
+
+/* 상세 화면 */
+main.detail { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
+.detail-header { margin-bottom: 28px; }
+.detail-title { font-size: 26px; font-weight: 800; margin: 0 0 8px; }
+.detail-meta { color: var(--muted); font-size: 14px; margin: 0; }
+
+.day-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .05);
+}
+.day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.day-date {
+  font-weight: 700;
+  font-size: 15px;
+  display: inline-block;
+  background: rgba(255, 90, 95, .1);
+  color: var(--accent);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+.day-route-btn {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid rgba(255, 90, 95, .35);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+.day-route-btn:hover { background: rgba(255, 90, 95, .1); }
+.day-map-embed { width: 100%; height: 280px; border: 0; border-radius: 12px; margin: 4px 0 14px; display: block; }
+.day-map-link {
+  display: inline-block;
+  margin: 4px 0 14px;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+.day-map-link:hover { text-decoration: underline; }
+
+.place-list { list-style: none; margin: 4px 0 0; padding: 0; }
+.place-item { padding: 10px 0; border-top: 1px solid var(--border); }
+.place-item:first-child { border-top: none; }
+.place-name { font-weight: 600; }
+.place-memo { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.place-map-link {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+.place-map-link:hover { text-decoration: underline; }
+.day-card .day-empty { padding: 0; }
+
+.comments-section { margin-top: 32px; }
+.comments-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+.comment-item {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.comment-date { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.comment-form { display: flex; gap: 8px; margin-top: 14px; }
+.comment-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+.comment-form button { border: none; }
+
+/* Add Travel 모달 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+.modal h2 { margin-top: 0; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+.field input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 16px;
+  font-family: inherit;
+}
+.cover-preview {
+  display: block;
+  margin-top: 10px;
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.field input[type="file"] { border: none; padding: 0; font-size: 13px; }
+
+.day-input-row { border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+.day-input-row label { display: block; font-weight: 700; margin-bottom: 8px; }
+.day-input-row input { margin-bottom: 8px; }
+.map-input-row { display: flex; gap: 8px; }
+.map-input-row input { flex: 1; margin-bottom: 0; }
+.btn-open-maps { white-space: nowrap; font-size: 13px; padding: 8px 14px; }
+.map-hint { font-size: 12px; color: var(--muted); margin: 6px 0 10px; line-height: 1.4; }
+
+.places-editor { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+.place-input-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fcfcfc;
+}
+.place-input-row input { margin-bottom: 8px; }
+.place-input-row .place-memo-input { margin-bottom: 0; }
+.place-row-line1, .place-row-line2 { display: flex; gap: 8px; align-items: center; }
+.place-row-line1 input { flex: 1; }
+.place-row-line2 input { flex: 1; }
+.btn-remove-place {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+}
+.btn-remove-place:hover { background: #fdeceb; color: var(--accent); border-color: var(--accent); }
+.btn-add-place { font-size: 13px; padding: 6px 14px; margin-bottom: 4px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background .15s ease, border-color .15s ease;
+}
+.btn-ghost:hover { background: #f2f2f2; border-color: #ddd; }
+.export-note { font-size: 13px; color: var(--muted); }
+textarea.export-box {
+  width: 100%;
+  height: 160px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 10px;
+}
+.hidden { display: none; }
+
+/* ---------- 모바일 화면 ---------- */
+@media (max-width: 480px) {
+  .topbar { padding: 12px 16px; }
+  .logo { font-size: 18px; }
+  .topbar-actions { width: 100%; justify-content: space-between; }
+  .topbar-actions .btn-ghost { font-size: 12px; padding: 8px 10px; }
+
+  main.detail { padding: 20px 14px 60px; }
+  .detail-title { font-size: 22px; }
+
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal { max-width: 100%; max-height: 92vh; border-radius: 16px 16px 0 0; padding: 18px; }
+
+  .map-input-row,
+  .place-row-line2 { flex-direction: column; align-items: stretch; }
+  .btn-open-maps { width: 100%; }
+
+  .place-row-line1 { gap: 10px; }
+  .btn-remove-place { width: 40px; height: 40px; font-size: 15px; }
+
+  .modal-actions { flex-wrap: wrap; }
+  .modal-actions button { flex: 1 1 auto; }
+
+  .day-map-embed { height: 220px; }
+}
