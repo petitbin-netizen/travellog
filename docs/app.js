@@ -54,13 +54,39 @@
     return start === end ? start : (start + ' ~ ' + end);
   }
 
+  // 장소의 구글맵 링크에서 길찾기에 쓸 위치(좌표 또는 구글이 인식한 장소명)를 뽑는다.
+  // 짧은 링크(maps.app.goo.gl 등)는 브라우저에서 풀 수 없어 null → 이름 검색으로 대체.
+  function locationFromMapUrl(u) {
+    if (!u) return null;
+    var m;
+    // 장소 핀의 정확한 좌표: !3d<lat>!4d<lng>
+    m = u.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+    if (m) return m[1] + ',' + m[2];
+    // ?q= / ?query= / ?destination= 에 좌표 또는 장소명이 들어있는 경우
+    m = u.match(/[?&](?:q|query|destination)=([^&]+)/);
+    if (m) {
+      try { return decodeURIComponent(m[1].replace(/\+/g, ' ')); } catch (e) { /* 무시 */ }
+    }
+    // /maps/place/<장소명>/ 경로
+    m = u.match(/\/maps\/place\/([^/@?]+)/);
+    if (m) {
+      try { return decodeURIComponent(m[1].replace(/\+/g, ' ')); } catch (e) { /* 무시 */ }
+    }
+    // 지도 중심 좌표: @lat,lng
+    m = u.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+    if (m) return m[1] + ',' + m[2];
+    return null;
+  }
+
   function buildRouteUrl(places, cityHint) {
-    var names = (places || []).map(function (p) { return p.name; }).filter(Boolean);
-    if (names.length < 2) return null;
     var withHint = function (s) { return cityHint ? (s + ' ' + cityHint) : s; };
-    var origin = encodeURIComponent(withHint(names[0]));
-    var destination = encodeURIComponent(withHint(names[names.length - 1]));
-    var waypoints = names.slice(1, -1).map(function (n) { return encodeURIComponent(withHint(n)); }).join('|');
+    var names = (places || []).filter(function (p) { return p.name || p.map_url; }).map(function (p) {
+      return locationFromMapUrl(p.map_url) || (p.name ? withHint(p.name) : null);
+    }).filter(Boolean);
+    if (names.length < 2) return null;
+    var origin = encodeURIComponent(names[0]);
+    var destination = encodeURIComponent(names[names.length - 1]);
+    var waypoints = names.slice(1, -1).map(function (n) { return encodeURIComponent(n); }).join('|');
     var url = 'https://www.google.com/maps/dir/?api=1&origin=' + origin + '&destination=' + destination;
     if (waypoints) url += '&waypoints=' + waypoints;
     return url;
