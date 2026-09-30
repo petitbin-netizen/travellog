@@ -690,8 +690,27 @@
   function parseRecordsText(text) {
     var s = String(text).replace(/^﻿/, '').trim();
     var start = s.indexOf('[');
-    var end = s.lastIndexOf(']');
-    if (start === -1 || end <= start) throw new Error('기록 목록([ ... ])을 찾을 수 없습니다.');
+    // 첫 '['와 짝이 맞는 ']'까지만 읽는다 (문자열 안의 괄호는 무시).
+    // 파일 끝에 붙어버린 군더더기(예: 중복된 "];")가 있어도 앞의 완결된 배열만 쓴다.
+    var end = -1;
+    if (start !== -1) {
+      var depth = 0, inStr = false;
+      for (var i = start; i < s.length; i++) {
+        var ch = s.charAt(i);
+        if (inStr) {
+          if (ch === '\\') i++;
+          else if (ch === '"') inStr = false;
+        } else if (ch === '"') {
+          inStr = true;
+        } else if (ch === '[') {
+          depth++;
+        } else if (ch === ']') {
+          depth--;
+          if (depth === 0) { end = i; break; }
+        }
+      }
+    }
+    if (start === -1 || end === -1) throw new Error('기록 목록([ ... ])을 찾을 수 없습니다.');
     var data;
     try {
       data = JSON.parse(s.slice(start, end + 1));
