@@ -363,7 +363,8 @@
       '  </div>' +
       '  <div id="export-panel" class="hidden">' +
       '    <p class="export-note">이 브라우저에는 자동 저장됩니다. 다른 기기·브라우저에서도 보려면<br>' +
-      '    아래 내용을 복사해 <code>output/data/records.js</code> 전체를 이 내용으로 바꿔주세요.</p>' +
+      '    화면 상단의 "내보내기"로 <code>records.js</code> 파일을 받아 다른 기기에서 "불러오기"로 올리세요.<br>' +
+      '    (아래는 같은 내용을 텍스트로 본 것입니다. 실제 기록이 든 파일은 공개 저장소에 커밋하지 마세요.)</p>' +
       '    <textarea class="export-box" id="export-box" readonly></textarea>' +
       '  </div>' +
       '</div>';
@@ -662,9 +663,79 @@
     closeModal();
   }
 
+  function recordsFileText() {
+    return 'const RECORDS = ' + JSON.stringify(records, null, 2) + ';\n';
+  }
+
   function showExportPanel() {
     qs('#export-panel', modalOverlay).classList.remove('hidden');
-    qs('#export-box', modalOverlay).value = 'const RECORDS = ' + JSON.stringify(records, null, 2) + ';\n';
+    qs('#export-box', modalOverlay).value = recordsFileText();
+  }
+
+  /* ---------- 파일 내보내기 / 불러오기 (기기 간 공유) ---------- */
+  function downloadRecordsFile() {
+    var blob = new Blob([recordsFileText()], { type: 'text/javascript;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'records.js';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // records.js("const RECORDS = [...];") 또는 순수 JSON 배열 파일을 읽어 배열로 돌려준다.
+  // 코드를 실행하지 않고 JSON으로만 해석한다 (앱이 내보낸 파일은 항상 JSON 호환).
+  function parseRecordsText(text) {
+    var s = String(text).replace(/^﻿/, '').trim();
+    var start = s.indexOf('[');
+    var end = s.lastIndexOf(']');
+    if (start === -1 || end <= start) throw new Error('기록 목록([ ... ])을 찾을 수 없습니다.');
+    var data;
+    try {
+      data = JSON.parse(s.slice(start, end + 1));
+    } catch (e) {
+      throw new Error('JSON 형식으로 읽을 수 없습니다. 앱에서 내보낸 records.js 파일인지 확인해주세요.');
+    }
+    if (!Array.isArray(data)) throw new Error('기록 목록이 배열이 아닙니다.');
+    data.forEach(function (r, i) {
+      if (!r || typeof r !== 'object' || !r.id || !r.start_date || !r.end_date ||
+          !Array.isArray(r.countries) || !Array.isArray(r.cities)) {
+        throw new Error((i + 1) + '번째 기록에 필수 항목(id, 국가, 도시, 시작일, 종료일)이 없습니다.');
+      }
+      if (!Array.isArray(r.days)) r.days = [];
+      if (!Array.isArray(r.comments)) r.comments = [];
+    });
+    return data;
+  }
+
+  function importRecordsFile(file) {
+    var reader = new FileReader();
+    reader.onerror = function () { alert('파일을 읽지 못했습니다.'); };
+    reader.onload = function () {
+      var data;
+      try {
+        data = parseRecordsText(reader.result);
+      } catch (e) {
+        alert('불러오기 실패: ' + e.message);
+        return;
+      }
+      var msg = '파일에 여행 기록이 ' + data.length + '개 있습니다.\n' +
+        '이 브라우저의 현재 기록(' + records.length + '개)을 모두 지우고 파일 내용으로 덮어쓸까요?\n' +
+        '(되돌릴 수 없으니 필요하면 먼저 "내보내기"로 백업하세요)';
+      if (!confirm(msg)) return;
+      records = data;
+      if (!saveToStorage()) alert('브라우저 저장에 실패했습니다. 이번 화면에서만 반영됩니다.');
+      if (document.body.getAttribute('data-page') === 'detail' &&
+          !findRecord(new URLSearchParams(window.location.search).get('id'))) {
+        window.location.href = 'index.html';
+        return;
+      }
+      renderCurrentPage();
+      alert('불러오기 완료: 여행 기록 ' + data.length + '개');
+    };
+    reader.readAsText(file, 'utf-8');
   }
 
   /* ---------- 초기화 ---------- */
@@ -677,6 +748,20 @@
   function init() {
     var addBtn = qs('#btn-add-travel');
     if (addBtn) addBtn.addEventListener('click', function () { openModal(null); });
+
+    var exportBtn = qs('#btn-export-file');
+    if (exportBtn) exportBtn.addEventListener('click', downloadRecordsFile);
+
+    var importBtn = qs('#btn-import-file');
+    var importInput = qs('#input-import-file');
+    if (importBtn && importInput) {
+      importBtn.addEventListener('click', function () { importInput.click(); });
+      importInput.addEventListener('change', function () {
+        var file = importInput.files && importInput.files[0];
+        importInput.value = '';
+        if (file) importRecordsFile(file);
+      });
+    }
 
     var reloadBtn = qs('#btn-reload-file');
     if (reloadBtn) {

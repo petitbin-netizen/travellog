@@ -4,12 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TravelLog · 여행 기록</title>
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body data-page="detail">
   <header class="topbar">
     <a href="index.html" class="logo">TravelLog</a>
     <div class="topbar-actions">
+      <button id="btn-export-file" class="btn-ghost" title="모든 여행 기록을 records.js 파일로 내려받습니다 (다른 기기로 옮길 때 사용)">내보내기</button>
+      <button id="btn-import-file" class="btn-ghost" title="내보낸 records.js 파일을 올려 이 브라우저의 기록을 덮어씁니다">불러오기</button>
+      <input id="input-import-file" type="file" accept=".js,.json,text/javascript,application/json" hidden>
       <button id="btn-reload-file" class="btn-ghost" title="records.js 파일을 수정했다면, 브라우저 저장분을 지우고 파일 내용을 다시 불러옵니다">파일에서 다시 불러오기</button>
       <button id="btn-edit-travel" class="btn-accent">수정</button>
     </div>
@@ -17,6 +20,6 @@
   <main id="app-root" class="detail"></main>
 
   <script src="data/records.js"></script>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
