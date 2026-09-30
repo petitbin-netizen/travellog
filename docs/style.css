@@ -181,10 +181,48 @@ main.detail { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
 .day-map-link:hover { text-decoration: underline; }
 
 .place-list { list-style: none; margin: 4px 0 0; padding: 0; }
-.place-item { padding: 10px 0; border-top: 1px solid var(--border); }
+.place-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
 .place-item:first-child { border-top: none; }
+.place-main { flex: 1; min-width: 0; }
+.place-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
 .place-name { font-weight: 600; }
 .place-memo { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+/* 카테고리: 아이콘 원 + 라벨 칩 (색은 --cat-fg / --cat-bg 로 지정) */
+.cat-icon {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cat-bg);
+  color: var(--cat-fg);
+}
+.cat-icon svg { width: 20px; height: 20px; }
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--cat-bg);
+  color: var(--cat-fg);
+  white-space: nowrap;
+}
+.cat-chip-icon { display: inline-flex; }
+.cat-chip-icon svg { width: 14px; height: 14px; }
+.cat-summary { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+.cat-chip-count { padding: 4px 11px; }
 .place-map-link {
   display: inline-block;
   margin-top: 4px;
@@ -275,6 +313,29 @@ main.detail { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
   background: #fcfcfc;
 }
 .place-input-row input { margin-bottom: 8px; }
+
+/* 모달: 카테고리 선택 칩 */
+.cat-picker { margin-bottom: 10px; }
+.cat-picker-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.cat-option .cat-chip-icon svg { width: 16px; height: 16px; }
+.cat-option:hover { border-color: var(--cat-fg); color: var(--cat-fg); }
+.cat-option.active { background: var(--cat-bg); border-color: var(--cat-fg); color: var(--cat-fg); }
+.place-input-row .cat-custom-input { width: 100%; margin: 8px 0 0; }
+.place-input-row .cat-custom-input.hidden { display: none; }
 .place-input-row .place-memo-input { margin-bottom: 0; }
 .place-row-line1, .place-row-line2 { display: flex; gap: 8px; align-items: center; }
 .place-row-line1 input { flex: 1; }

@@ -92,6 +92,74 @@
     return url;
   }
 
+  /* ---------- 장소 카테고리 ---------- */
+  function svgIcon(inner) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>';
+  }
+
+  var CATEGORIES = [
+    { key: 'food', label: '음식점', fg: '#D9663A', bg: '#FDEEE6',
+      svg: svgIcon('<path d="M5 3v7a2 2 0 0 0 2 2 2 2 0 0 0 2-2V3"/><path d="M7 3v18"/><path d="M18 21V3c-2.4 1.3-3.5 3.8-3.5 6.5V14H18"/>') },
+    { key: 'cafe', label: '카페', fg: '#A0714F', bg: '#F6ECE4',
+      svg: svgIcon('<path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5v2.5M12 2.5v2.5"/>') },
+    { key: 'sight', label: '관광지', fg: '#3F9E86', bg: '#E5F5F0',
+      svg: svgIcon('<path d="M3 9a2 2 0 0 1 2-2h2l1.5-2h7L17 7h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><circle cx="12" cy="13" r="3.5"/>') },
+    { key: 'stay', label: '숙소', fg: '#5B7FD6', bg: '#E8EEFC',
+      svg: svgIcon('<path d="M3 5v14"/><path d="M3 15h18v4"/><path d="M21 15v-2.5A2.5 2.5 0 0 0 18.5 10H11v5"/><circle cx="7" cy="11.5" r="1.6"/>') },
+    { key: 'shop', label: '쇼핑', fg: '#C55C97', bg: '#FAE8F2',
+      svg: svgIcon('<path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>') },
+    { key: 'transport', label: '교통', fg: '#5E8F9E', bg: '#E6F1F4',
+      svg: svgIcon('<rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14"/><circle cx="9" cy="14" r=".8"/><circle cx="15" cy="14" r=".8"/><path d="M8 17l-2 4M16 17l2 4"/>') },
+    { key: 'activity', label: '액티비티', fg: '#D19A1F', bg: '#FBF3DC',
+      svg: svgIcon('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7L12 3z"/>') },
+    { key: 'etc', label: '기타', fg: '#7C7C8A', bg: '#EFEFF3',
+      svg: svgIcon('<path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>') }
+  ];
+  var CUSTOM_CATEGORY = { key: 'custom', label: '직접 입력', fg: '#9C8AD8', bg: '#F1EEFB',
+    svg: svgIcon('<path d="M3 12V4h8l10 10-8 8L3 12z"/><circle cx="7.5" cy="8.5" r="1.2"/>') };
+  var NO_CATEGORY = { key: 'none', label: '', fg: '#9A9AA5', bg: '#F2F2F5',
+    svg: svgIcon('<path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>') };
+
+  function categoryOf(place) {
+    var key = place && place.category;
+    if (key === 'custom') {
+      var label = (place.category_label || '').trim();
+      return label ? { key: 'custom', label: label, fg: CUSTOM_CATEGORY.fg, bg: CUSTOM_CATEGORY.bg, svg: CUSTOM_CATEGORY.svg } : NO_CATEGORY;
+    }
+    for (var i = 0; i < CATEGORIES.length; i++) {
+      if (CATEGORIES[i].key === key) return CATEGORIES[i];
+    }
+    return NO_CATEGORY;
+  }
+
+  function catStyle(cat) {
+    return '--cat-fg:' + cat.fg + ';--cat-bg:' + cat.bg;
+  }
+
+  function buildCategorySummary(places) {
+    var order = [];
+    var counts = {};
+    places.forEach(function (p) {
+      var cat = categoryOf(p);
+      if (cat.key === 'none') return;
+      // 직접 입력은 라벨별로 따로 센다
+      var id = cat.key === 'custom' ? 'custom:' + cat.label : cat.key;
+      if (!counts[id]) { counts[id] = { cat: cat, n: 0 }; order.push(id); }
+      counts[id].n++;
+    });
+    if (!order.length) return null;
+    var row = el('div', { className: 'cat-summary' });
+    order.forEach(function (id) {
+      var c = counts[id];
+      var item = el('span', { className: 'cat-chip cat-chip-count', attrs: { style: catStyle(c.cat) } });
+      item.appendChild(el('span', { className: 'cat-chip-icon', html: c.cat.svg }));
+      item.appendChild(document.createTextNode(c.cat.label + ' ' + c.n));
+      row.appendChild(item);
+    });
+    return row;
+  }
+
   function countPlaces(record) {
     var n = 0;
     (record.days || []).forEach(function (d) { n += (d.places || []).length; });
@@ -202,18 +270,29 @@
       }
 
       if (places.length) {
+        // 하루 요약: 카테고리별 아이콘 + 개수 (카테고리가 지정된 장소만)
+        var summary = buildCategorySummary(places);
+        if (summary) dayCard.appendChild(summary);
+
         var ul = el('ul', { className: 'place-list' });
         places.forEach(function (p) {
-          var li = el('li', { className: 'place-item', attrs: { 'data-place-item': '' } });
-          li.appendChild(el('div', { className: 'place-name', text: p.name }));
-          if (p.memo) li.appendChild(el('div', { className: 'place-memo', text: p.memo }));
+          var cat = categoryOf(p);
+          var li = el('li', { className: 'place-item', attrs: { 'data-place-item': '', 'data-category': cat.key, style: catStyle(cat) } });
+          li.appendChild(el('span', { className: 'cat-icon', html: cat.svg, attrs: { title: cat.label } }));
+          var main = el('div', { className: 'place-main' });
+          var titleRow = el('div', { className: 'place-title-row' });
+          titleRow.appendChild(el('span', { className: 'place-name', text: p.name }));
+          if (cat.label) titleRow.appendChild(el('span', { className: 'cat-chip', text: cat.label, attrs: { 'data-place-category': '' } }));
+          main.appendChild(titleRow);
+          if (p.memo) main.appendChild(el('div', { className: 'place-memo', text: p.memo }));
           if (p.map_url) {
-            li.appendChild(el('a', {
+            main.appendChild(el('a', {
               className: 'place-map-link',
               text: '지도에서 보기 →',
               attrs: { href: p.map_url, target: '_blank', rel: 'noopener', 'data-place-map-link': '' }
             }));
           }
+          li.appendChild(main);
           ul.appendChild(li);
         });
         dayCard.appendChild(ul);
@@ -371,7 +450,7 @@
 
       var placesEditor = el('div', { className: 'places-editor' });
       (existing.places || []).forEach(function (p) {
-        placesEditor.appendChild(buildPlaceRow(p.name, p.map_url, p.memo));
+        placesEditor.appendChild(buildPlaceRow(p));
       });
       row.appendChild(placesEditor);
 
@@ -380,7 +459,7 @@
         attrs: { type: 'button' }
       });
       addPlaceBtn.addEventListener('click', function () {
-        placesEditor.appendChild(buildPlaceRow('', '', ''));
+        placesEditor.appendChild(buildPlaceRow({}));
       });
       row.appendChild(addPlaceBtn);
 
@@ -388,8 +467,55 @@
     });
   }
 
-  function buildPlaceRow(name, mapUrl, memo) {
+  // 카테고리 선택 칩: 프리셋 8종 + 직접 입력. 선택값은 행(pr)의 data-category에 둔다.
+  // 같은 칩을 다시 누르면 선택 해제.
+  function buildCategoryPicker(pr, place) {
+    var wrap = el('div', { className: 'cat-picker' });
+    var chips = el('div', { className: 'cat-picker-chips', attrs: { role: 'group', 'aria-label': '장소 카테고리' } });
+    var customInput = el('input', {
+      className: 'cat-custom-input',
+      attrs: { placeholder: '카테고리 직접 입력 (예: 미술관, 온천)', maxlength: '20', 'data-place-category-label': '' }
+    });
+    customInput.value = place.category === 'custom' ? (place.category_label || '') : '';
+
+    var buttons = {};
+    function select(key, skipFocus) {
+      pr.setAttribute('data-category', key || '');
+      Object.keys(buttons).forEach(function (k) {
+        var on = k === key;
+        buttons[k].classList.toggle('active', on);
+        buttons[k].setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      customInput.classList.toggle('hidden', key !== 'custom');
+      if (key === 'custom' && !skipFocus) customInput.focus();
+    }
+
+    CATEGORIES.concat([CUSTOM_CATEGORY]).forEach(function (cat) {
+      var b = el('button', {
+        className: 'cat-option',
+        attrs: { type: 'button', 'data-cat': cat.key, 'aria-pressed': 'false', style: catStyle(cat) }
+      });
+      b.appendChild(el('span', { className: 'cat-chip-icon', html: cat.svg }));
+      b.appendChild(document.createTextNode(cat.label));
+      b.addEventListener('click', function () {
+        select(pr.getAttribute('data-category') === cat.key ? '' : cat.key);
+      });
+      buttons[cat.key] = b;
+      chips.appendChild(b);
+    });
+
+    wrap.appendChild(chips);
+    wrap.appendChild(customInput);
+    select(place.category && buttons[place.category] ? place.category : '', true);
+    return wrap;
+  }
+
+  function buildPlaceRow(place) {
+    place = place || {};
+    var name = place.name, mapUrl = place.map_url, memo = place.memo;
     var pr = el('div', { className: 'place-input-row' });
+
+    var catPicker = buildCategoryPicker(pr, place);
 
     var line1 = el('div', { className: 'place-row-line1' });
     var nameInput = el('input', { attrs: { placeholder: '장소 이름', 'data-place-name': '' } });
@@ -419,6 +545,7 @@
     });
     memoInput.value = memo || '';
 
+    pr.appendChild(catPicker);
     pr.appendChild(line1);
     pr.appendChild(line2);
     pr.appendChild(memoInput);
@@ -499,6 +626,14 @@
         var name = nameEl ? nameEl.value.trim() : '';
         if (!name) return;
         var place = { name: name, order: places.length + 1 };
+        var catKey = pr.getAttribute('data-category') || '';
+        if (catKey === 'custom') {
+          var customEl = pr.querySelector('[data-place-category-label]');
+          var customLabel = customEl ? customEl.value.trim() : '';
+          if (customLabel) { place.category = 'custom'; place.category_label = customLabel; }
+        } else if (catKey) {
+          place.category = catKey;
+        }
         var placeMapUrl = placeMapEl ? placeMapEl.value.trim() : '';
         if (placeMapUrl) place.map_url = placeMapUrl;
         var memo = memoEl ? memoEl.value.trim() : '';

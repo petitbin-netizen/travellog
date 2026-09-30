@@ -19,9 +19,17 @@ TravelRecord {
                      map_url    선택 — 이 날 전체를 대표하는 지도 URL(예: 숙소 위치).
                                  embed 형태면 지도를 크게 보여줌, 아니면 링크
                      places[]   선택 — 하루에 "+ 장소 추가"로 원하는 만큼 추가.
-                                 각 장소 { name, map_url(선택), memo(선택) }
+                                 각 장소 { name, category(선택), category_label(선택), map_url(선택), memo(선택) }
+                                 - category: 음식점(food) / 카페(cafe) / 관광지(sight) / 숙소(stay) /
+                                   쇼핑(shop) / 교통(transport) / 액티비티(activity) / 기타(etc) /
+                                   직접 입력(custom). 편집 모달에서 아이콘 칩으로 고르고, 같은 칩을
+                                   다시 누르면 해제. custom이면 category_label에 직접 쓴 이름 저장
                                  - map_url: 그 장소만의 구글맵 링크 (상세 화면에 "지도에서 보기" 링크로 표시)
                                  - memo: 그 장소에 대한 코멘트
+
+  상세 화면에서는 장소마다 카테고리별 색 아이콘 원 + 라벨 칩이 붙고, 그날 카드 상단에
+  카테고리별 개수 요약(예: 음식점 2, 카페 1)이 표시된다. 아이콘은 인라인 SVG(app.js의 CATEGORIES)다.
+  카테고리가 없는 기존 데이터는 회색 핀 아이콘으로 표시된다.
 
   장소를 2개 이상 넣은 날은 상세 화면에 **"이 날짜 동선 보기 ↗"** 버튼이 생겨서,
   누르면 그날 장소들을 입력한 순서대로 이은 구글맵 길찾기(Directions) 링크가 새 탭에서 열린다
